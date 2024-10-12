@@ -127,6 +127,7 @@ def load_combined_dataset(directory, class_names, img_size=(224, 224)):
 
     images = np.array(images) / 255.0  # Normalize images
     audio_features = np.array(audio_features)
+    audio_features = np.squeeze(audio_features, axis=1)  
     labels = np.array(labels)
 
     return images, audio_features, labels

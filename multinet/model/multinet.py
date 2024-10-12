@@ -1,14 +1,17 @@
 import tensorflow as tf
-from tensorflow.keras.layers import Input, Dense, GlobalAveragePooling2D, Dropout, concatenate
-from tensorflow.keras.models import Model
+from tensorflow import keras
+from keras.layers import Input, Dense, GlobalAveragePooling2D, Dropout, concatenate
+from keras.models import Model
 
-from model.timnet import TimNet
-from model.pattlite import PAttLite
+from multinet.model.timnet import TimNet
+from multinet.model.pattlite import PAttLite
 
 class MultiNet:
     def __init__(self, timnet_input_shape, class_labels, p_att_lite_input_shape, dropout_rate):
         self.class_labels = class_labels
         self.num_classes = len(class_labels)
+        self.timnet_input_shape = timnet_input_shape
+        self.p_att_lite_input_shape = p_att_lite_input_shape
         self.timnet_model = self.create_timnet_model(timnet_input_shape, class_labels)
         self.p_att_lite_model = self.create_p_att_lite_model(p_att_lite_input_shape, self.num_classes, dropout_rate)
         self.combined_model = self.create_combined_model(dropout_rate)
@@ -61,11 +64,12 @@ class MultiNet:
                                 epochs=epochs,
                                 validation_data=validation_data)
 
-model = MultiNet(
-    timnet_input_shape=(215,39), 
-    class_labels=("angry", "calm", "disgust", "fear", "happy", "neutral","sad","surprise"),
-    p_att_lite_input_shape=(224, 224, 3), 
-    dropout_rate=0.5
-)
-model.compile_model(learning_rate=0.001)
-model.combined_model.summary()
+if __name__ == "__main__":
+    model = MultiNet(
+        timnet_input_shape=(215,39), 
+        class_labels=("angry", "calm", "disgust", "fear", "happy", "neutral","sad","surprise"),
+        p_att_lite_input_shape=(224, 224, 3), 
+        dropout_rate=0.5
+    )
+    model.compile_model(learning_rate=0.001)
+    model.combined_model.summary()

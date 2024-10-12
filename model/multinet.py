@@ -2,8 +2,8 @@ import tensorflow as tf
 from tensorflow.keras.layers import Input, Dense, GlobalAveragePooling2D, Dropout, concatenate
 from tensorflow.keras.models import Model
 
-from timnet import TimNet
-from pattlite import PAttLite
+from model.timnet import TimNet
+from model.pattlite import PAttLite
 
 class MultiNet:
     def __init__(self, timnet_input_shape, class_labels, p_att_lite_input_shape, dropout_rate):

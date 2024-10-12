@@ -86,6 +86,17 @@ def get_feature(file_path: str, feature_type:str="MFCC", mean_signal_length:int=
         feature = np.transpose(mfcc)
     return np.array([feature])
 
+def dataset_from_directories(directories, classes):
+    dataset = {}
+    for directory in directories:
+        files = os.listdir(directory)
+        for file in files:
+            modality, vc, emotion, intensity, statement, repeat, actor = map(int,os.path.basename(file)[:-4].split("-"))
+            if modality == 2 or vc == 2:
+                continue
+            dataset[classes[emotion-1]] = dataset.get(classes[emotion-1],[]) + [os.path.join(directory,file)]
+    return dataset
+
 def load_combined_dataset(directory, class_names, img_size=(224, 224)):
     images = []
     audio_features = []
@@ -119,3 +130,10 @@ def load_combined_dataset(directory, class_names, img_size=(224, 224)):
     labels = np.array(labels)
 
     return images, audio_features, labels
+
+def cache_dataset(images, audio_features, labels, path):
+    np.savez(path, images=images, audio_features=audio_features, labels=labels)
+
+def load_cached_dataset(path):
+    data = np.load(path)
+    return data["images"], data["audio_features"], data["labels"]

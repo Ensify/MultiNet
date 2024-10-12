@@ -58,11 +58,26 @@ class MultiNet:
             metrics=['accuracy']
         )
 
-    def train_model(self, timnet_data, p_att_lite_data, labels, batch_size, epochs, validation_data):
-        return self.combined_model.fit([timnet_data, p_att_lite_data], labels,
-                                batch_size=batch_size,
-                                epochs=epochs,
-                                validation_data=validation_data)
+    def train_model(self, timnet_data, p_att_lite_data, labels, batch_size, epochs, validation_data, callbacks=None):
+        """Train the MultiNet model.
+        
+        Args:
+            timnet_data (array-like): TIMNET feature data.
+            p_att_lite_data (array-like): P-Att-Lite feature data.
+            labels (array-like): Training labels.
+            batch_size (int): Batch size for training.
+            epochs (int): Number of epochs to train.
+            validation_data (tuple): Validation data in the format (inputs, labels).
+            callbacks (list): List of callback functions to apply during training.
+        """
+        return self.combined_model.fit(
+            [timnet_data, p_att_lite_data], labels,
+            batch_size=batch_size,
+            epochs=epochs,
+            validation_data=validation_data,
+            callbacks=callbacks  # Pass the callbacks to the fit method
+        )
+
 
 if __name__ == "__main__":
     model = MultiNet(

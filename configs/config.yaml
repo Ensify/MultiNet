@@ -1,0 +1,10 @@
+batch_size: 32
+epochs: 100
+train_data_cache_path: "/content/train_v1.npz"
+test_data_cache_path: "/content/test_v1.npz"
+keep_best: true
+learning_rate: 0.001
+save_dir: "/content/models"
+classes: ["angry", "calm", "disgust", "fear", "happy", "neutral", "sad", "surprise"]
+dropout_rate: 0.5
+save_weights_frequency: 5  

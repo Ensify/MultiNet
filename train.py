@@ -1,15 +1,59 @@
 import yaml
 import argparse
 import os
-from multinet.data import utils
-from multinet.model.multinet import MultiNet
+from multinet.data import utils  # Assuming you have utility functions for loading the dataset
+from multinet.model.multinet import MultiNet  # Assuming your model is in 'model.py'
 import tensorflow as tf
+import matplotlib.pyplot as plt
+from keras.callbacks import LambdaCallback
 
 def load_config(config_path):
     """Load training configuration from a YAML file."""
     with open(config_path, 'r') as file:
         config = yaml.safe_load(file)
     return config
+
+def plot_live(history, save_dir):
+    """Plot training accuracy and loss live."""
+    epochs = range(1, len(history.history['loss']) + 1)
+
+    # Clear the previous plot
+    plt.clf()
+
+    # Plot training & validation accuracy values
+    plt.subplot(1, 2, 1)
+    plt.plot(epochs, history.history['accuracy'], label='Train Accuracy')
+    plt.plot(epochs, history.history['val_accuracy'], label='Validation Accuracy')
+    plt.title('Accuracy')
+    plt.xlabel('Epochs')
+    plt.ylabel('Accuracy')
+    plt.legend()
+
+    # Plot training & validation loss values
+    plt.subplot(1, 2, 2)
+    plt.plot(epochs, history.history['loss'], label='Train Loss')
+    plt.plot(epochs, history.history['val_loss'], label='Validation Loss')
+    plt.title('Loss')
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.legend()
+
+    # Show the plot
+    plt.tight_layout()
+    plt.draw()
+    plt.pause(0.001)  # Allows the plot to update live
+
+    # Save the plot to the save directory
+    plt.savefig(os.path.join(save_dir, 'training_plot.png'))
+
+def live_plot_callback(save_dir):
+    """Return a LambdaCallback to plot live training progress."""
+    def on_epoch_end(epoch, logs):
+        history = tf.keras.callbacks.History()
+        history.history = logs  # Use logs directly for plotting
+        plot_live(history, save_dir)
+        
+    return LambdaCallback(on_epoch_end=on_epoch_end)
 
 def main(config_path):
     # Load configuration
@@ -30,8 +74,13 @@ def main(config_path):
     # Compile the model
     model.compile_model(learning_rate=config['learning_rate'])
 
-    # Define callbacks for saving the model and other custom callbacks
+    # Define callbacks
     callbacks = []
+
+    # Plot live during training
+    plt.ion()  # Interactive mode on for live updating plots
+    callbacks.append(live_plot_callback(config['save_dir']))
+
     if config['keep_best']:
         callbacks.append(
             tf.keras.callbacks.ModelCheckpoint(
@@ -41,6 +90,7 @@ def main(config_path):
                 mode='min'
             )
         )
+
     if config['save_weights_frequency'] > 0:
         callbacks.append(
             tf.keras.callbacks.ModelCheckpoint(
@@ -58,7 +108,7 @@ def main(config_path):
         batch_size=config['batch_size'],
         epochs=config['epochs'],
         validation_data=([test_audio_features, test_images], test_labels),
-        callbacks=callbacks
+        callbacks=callbacks  # Pass the callbacks list here
     )
 
 if __name__ == '__main__':

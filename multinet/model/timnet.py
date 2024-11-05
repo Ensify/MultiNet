@@ -154,7 +154,12 @@ class TimNet:
         self.matrix = []
         self.eva_matrix = []
         self.acc = 0
-    
+
+    def get_config(self):
+        return {
+            'input_shape': self.data_shape,
+            'class_label': self.class_label,
+        }
     def create_model(self,
                      filter_size,
                      kernel_size,

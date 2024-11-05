@@ -6,6 +6,7 @@ class PAttLite(tf.keras.Model):
         super(PAttLite, self).__init__()
         self.num_classes = num_classes
         self.train_dropout = train_dropout
+        self.data_shape = input_shape
 
         self.sample_resizing = tf.keras.layers.experimental.preprocessing.Resizing(224, 224, name="resize")
         self.data_augmentation = tf.keras.Sequential([
@@ -13,7 +14,6 @@ class PAttLite(tf.keras.Model):
             tf.keras.layers.RandomContrast(factor=0.3)
         ], name="augmentation")
         self.preprocess_input = tf.keras.applications.mobilenet.preprocess_input
-
         self.backbone = tf.keras.applications.mobilenet.MobileNet(
             input_shape=(224, 224, 3), include_top=False, weights='imagenet')
         self.backbone.trainable = False
@@ -31,6 +31,13 @@ class PAttLite(tf.keras.Model):
             tf.keras.layers.BatchNormalization()
         ], name='pre_classification')
         self.prediction_layer = tf.keras.layers.Dense(64, name='feature_extraction')
+    
+    def get_config(self):
+        return {
+            'input_shape': self.data_shape,
+            'num_classes': self.num_classes,
+            'train_dropout': self.train_dropout,
+        }
 
     def call(self, inputs, training=False):
         x = self.sample_resizing(inputs)

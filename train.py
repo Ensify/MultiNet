@@ -1,11 +1,12 @@
 import yaml
 import argparse
 import os
-from multinet.data import utils  # Assuming you have utility functions for loading the dataset
-from multinet.model.multinet import MultiNet  # Assuming your model is in 'model.py'
+from multinet.data import utils  
+from multinet.model.multinet import MultiNet  
 import tensorflow as tf
 import matplotlib.pyplot as plt
 from keras.callbacks import LambdaCallback
+
 
 def load_config(config_path):
     """Load training configuration from a YAML file."""
@@ -15,15 +16,15 @@ def load_config(config_path):
 
 def plot_live(history, save_dir):
     """Plot training accuracy and loss live."""
-    epochs = range(1, len(history.history['loss']) + 1)
+    epochs = range(1, len(history['loss']) + 1)
 
     # Clear the previous plot
     plt.clf()
 
     # Plot training & validation accuracy values
     plt.subplot(1, 2, 1)
-    plt.plot(epochs, history.history['accuracy'], label='Train Accuracy')
-    plt.plot(epochs, history.history['val_accuracy'], label='Validation Accuracy')
+    plt.plot(epochs, history['accuracy'], label='Train Accuracy')
+    plt.plot(epochs, history['val_accuracy'], label='Validation Accuracy')
     plt.title('Accuracy')
     plt.xlabel('Epochs')
     plt.ylabel('Accuracy')
@@ -31,8 +32,8 @@ def plot_live(history, save_dir):
 
     # Plot training & validation loss values
     plt.subplot(1, 2, 2)
-    plt.plot(epochs, history.history['loss'], label='Train Loss')
-    plt.plot(epochs, history.history['val_loss'], label='Validation Loss')
+    plt.plot(epochs, history['loss'], label='Train Loss')
+    plt.plot(epochs, history['val_loss'], label='Validation Loss')
     plt.title('Loss')
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
@@ -48,9 +49,16 @@ def plot_live(history, save_dir):
 
 def live_plot_callback(save_dir):
     """Return a LambdaCallback to plot live training progress."""
+    history = {'loss': [], 'val_loss': [], 'accuracy': [], 'val_accuracy': []}
+    
     def on_epoch_end(epoch, logs):
-        history = tf.keras.callbacks.History()
-        history.history = logs  # Use logs directly for plotting
+        # Append current epoch's logs to the history
+        history['loss'].append(logs.get('loss'))
+        history['val_loss'].append(logs.get('val_loss'))
+        history['accuracy'].append(logs.get('accuracy'))
+        history['val_accuracy'].append(logs.get('val_accuracy'))
+
+        # Call the plot function with updated history
         plot_live(history, save_dir)
         
     return LambdaCallback(on_epoch_end=on_epoch_end)
@@ -79,6 +87,9 @@ def main(config_path):
 
     # Plot live during training
     plt.ion()  # Interactive mode on for live updating plots
+
+    if not os.path.exists(config['save_dir']):
+        os.makedirs(config['save_dir'])
     callbacks.append(live_plot_callback(config['save_dir']))
 
     if config['keep_best']:
